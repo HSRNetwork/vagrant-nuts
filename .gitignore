@@ -1,2 +1,3 @@
 .vagrant/*
 *.log
+saltstack/salt/_module/

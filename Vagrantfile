@@ -33,9 +33,14 @@ Vagrant.configure(2) do |config|
 
     # Copy custom module into salt
     master.vm.provision "shell",
-      inline: "mkdir -p /srv/salt/_module"
+      inline: "mkdir -p /srv/salt/_modules"
     master.vm.provision "shell",
-      inline: "wget -O /srv/salt/_module/nuts.py https://raw.githubusercontent.com/HSRNetwork/Nuts/develop/_modules/nuts.py"
+      inline: "wget -O /srv/salt/_modules/nuts.py https://raw.githubusercontent.com/HSRNetwork/Nuts/develop/_modules/nuts.py"
+
+    # Install GitPython for SaltStack gitfs support
+    master.vm.provision "shell",
+      inline: "sudo apt-get update && sudo apt-get install python-git -y"
+
 
     master.vm.provision :salt do |salt|
       salt.verbose = true
@@ -43,7 +48,6 @@ Vagrant.configure(2) do |config|
       salt.install_type = "git"
       # salt.install_args = "develop"
       salt.install_master = true
-      # salt.master_config = "saltstack/etc/master"
       salt.bootstrap_options = "-A 192.168.100.100"
 
       salt.master_key = "saltstack/pki/saltmaster.pem"
@@ -52,10 +56,12 @@ Vagrant.configure(2) do |config|
       salt.minion_pub = "saltstack/pki/saltmaster.pub"
 
       salt.seed_master = {
-                          "saltmaster" => "saltstack/keys/saltmaster.pub",
-                          "minion1" => "saltstack/keys/minion1.pub",
-                          "minion2" => "saltstack/keys/minion2.pub"
-                         } 
+                          "saltmaster" => "saltstack/pki/saltmaster.pub",
+                          "minion1" => "saltstack/pki/minion1.pub",
+                          "minion2" => "saltstack/pki/minion2.pub"
+                         }
+
+      salt.run_highstate = true 
     end
   end
 
@@ -76,6 +82,8 @@ Vagrant.configure(2) do |config|
 
         salt.minion_key = "saltstack/pki/minion#{i}.pem"
         salt.minion_pub = "saltstack/pki/minion#{i}.pub"
+
+        salt.run_highstate = true
     end
 
     end

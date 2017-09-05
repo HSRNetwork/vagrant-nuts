@@ -19,6 +19,21 @@ Vagrant.configure(2) do |config|
     nuts.vm.provision "shell",
       inline: "cd Nuts; sudo python setup.py install"
 
+
+    # environment variable for nuts (settings)
+    nuts.vm.provision "shell",
+      inline: "echo 'export NUTS_SALT_REST_API_URL=http://192.168.100.100:8000' >> /home/ubuntu/.profile"
+    nuts.vm.provision "shell",
+      inline: "echo 'export NUTS_SALT_REST_API_USERNAME=ubuntu' >> /home/ubuntu/.profile"
+    nuts.vm.provision "shell",
+      inline: "echo 'export NUTS_SALT_REST_API_PASSWORD=1234' >> /home/ubuntu/.profile"
+    nuts.vm.provision "shell",
+      inline: "echo 'export NUTS_SALT_REST_API_EAUTH=pam' >> /home/ubuntu/.profile"
+
+
+    nuts.vm.synced_folder "nuts/testfiles/", "/home/ubuntu/testfiles"
+
+
   end
 
   # salt master vm
@@ -62,6 +77,22 @@ Vagrant.configure(2) do |config|
                          }
 
       salt.run_highstate = true 
+
+
+
+    # Install Cherrypy and run salt-api
+    master.vm.provision "shell",
+      inline: "sudo apt-get update && sudo apt-get install python-pip -y"
+    master.vm.provision "shell",
+      inline: "sudo pip install cherrypy"
+    master.vm.provision "shell",
+      inline: "sudo salt-api -d"
+
+    # Set ubuntu password for api access
+    master.vm.provision "shell",
+      inline: "sudo echo 'ubuntu:1234' | sudo chpasswd"
+
+
     end
   end
 
